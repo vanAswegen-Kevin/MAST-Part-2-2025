@@ -1,76 +1,61 @@
-// src/screens/AddDishScreen.js
-import React, { useState } from "react";
-import { View, Text, TextInput, Button, StyleSheet, Alert, KeyboardAvoidingView, Platform } from "react-native";
-import { useNavigation } from "@react-navigation/native";
-import { useDishes } from "../context/DishContext";
+import React, { useState, useContext } from "react";
+import { View, Text, TextInput, Button, StyleSheet, Alert } from "react-native";
+import { DishContext } from "../context/DishContext";
 
-export default function AddDishScreen() {
-  const navigation = useNavigation();
-  const { addDish } = useDishes();
-
-  const [dishName, setDishName] = useState("");
+export default function AddDishScreen({ navigation }) {
+  const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [course, setCourse] = useState("");
   const [price, setPrice] = useState("");
+  const { addDish } = useContext(DishContext);
 
   const handleAddDish = () => {
-    if (!dishName.trim() || !description.trim() || !course.trim() || !price.trim()) {
-      Alert.alert("Error", "Please fill out all fields");
-      return;
-    }
-    const priceNum = Number(price);
-    if (isNaN(priceNum) || priceNum <= 0) {
-      Alert.alert("Error", "Please enter a valid price greater than 0");
+    if (!name || !course || !price) {
+      Alert.alert("Error", "Please fill in all required fields.");
       return;
     }
 
-    addDish({
-      name: dishName.trim(),
-      description: description.trim(),
-      course: course.trim(),
-      price: priceNum,
-    });
+    const newDish = {
+      id: Date.now().toString(),
+      name,
+      description,
+      course,
+      price: parseFloat(price),
+    };
 
-    Alert.alert("Success", `${dishName} added successfully!`);
-    // clear fields (nice UX) and go back
-    setDishName("");
-    setDescription("");
-    setCourse("");
-    setPrice("");
+    addDish(newDish);
+    Alert.alert("Success", "Dish successfully added!");
     navigation.goBack();
   };
 
   return (
-    <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : undefined} style={styles.container}>
-      <View>
-        <Text style={styles.label}>Dish Name</Text>
-        <TextInput style={styles.input} value={dishName} onChangeText={setDishName} placeholder="e.g. Wild Mushroom Risotto" />
-
-        <Text style={styles.label}>Description</Text>
-        <TextInput style={[styles.input, { height: 80 }]} value={description} onChangeText={setDescription} multiline placeholder="Short description" />
-
-        <Text style={styles.label}>Course (Starter / Main / Dessert)</Text>
-        <TextInput style={styles.input} value={course} onChangeText={setCourse} placeholder="Starter" />
-
-        <Text style={styles.label}>Price (R)</Text>
-        <TextInput style={styles.input} value={price} onChangeText={setPrice} keyboardType="numeric" placeholder="85" />
-
-        <View style={{ marginTop: 12 }}>
-          <Button title="Save Dish" onPress={handleAddDish} />
-        </View>
-      </View>
-    </KeyboardAvoidingView>
+    <View style={styles.container}>
+      <Text style={styles.header}>Add a New Dish</Text>
+      <TextInput placeholder="Dish Name" style={styles.input} value={name} onChangeText={setName} />
+      <TextInput placeholder="Description" style={styles.input} value={description} onChangeText={setDescription} />
+      <TextInput placeholder="Course (e.g., Starter, Main, Dessert)" style={styles.input} value={course} onChangeText={setCourse} />
+      <TextInput placeholder="Price" style={styles.input} keyboardType="numeric" value={price} onChangeText={setPrice} />
+      <Button title="Add Dish" onPress={handleAddDish} />
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, padding: 20, backgroundColor: "#fff" },
-  label: { marginTop: 10, fontWeight: "bold", fontSize: 16 },
+  container: {
+    flex: 1,
+    padding: 20,
+    justifyContent: "center",
+  },
+  header: {
+    fontSize: 22,
+    fontWeight: "bold",
+    marginBottom: 15,
+  },
   input: {
     borderWidth: 1,
     borderColor: "#ccc",
-    borderRadius: 8,
     padding: 10,
-    marginVertical: 6,
+    marginBottom: 10,
+    borderRadius: 8,
   },
 });
